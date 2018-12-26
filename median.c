@@ -12,7 +12,7 @@ PG_MODULE_MAGIC;
 #define MEDIANDEBUG DEBUG1
 
 /*
-Pat Mancuso - Timescale homework project 12/16/2018
+Pat Mancuso - Timescale homework project 12/2018
 Find the median value
 */
 
@@ -22,9 +22,6 @@ typedef struct {
   int64 values_num;   /* Number of entries */
   Tuplesortstate *tuplesort_state;
 } MEDIAN_STATE;
-
-#define VALUES_SIZE_START 16
-#define MAX_UNSIGNED_INT UINT32_MAX
 
 /*
  * Median state transfer function.
@@ -54,6 +51,7 @@ median_transfn(PG_FUNCTION_ARGS)
           elog(ERROR, "median_transfn failed to alloc state");
         }
 
+        memset(state, 0, sizeof(MEDIAN_STATE));
         state->values_num = 0;
 
         {
@@ -61,7 +59,7 @@ median_transfn(PG_FUNCTION_ARGS)
           Oid sortOperator = 0;
           Oid sortCollation = fcinfo->fncollation;
           bool nullsFirstFlag = false;
-          int workMem = 65536;  /* wild guess - may need to be tuned */
+          int workMem = 65536;  /* wild guess - should be tuned */
           bool randomAccess = false;
           char *oprname = "<";
 
@@ -78,7 +76,7 @@ median_transfn(PG_FUNCTION_ARGS)
         }
       }
 
-      /* Now that we've got a state, and it's ready to accept the data...store it...if it's not null */
+      /* Now that we've got a state and a tuplesort state, and it's ready to accept the data...store it...if it's not null */
       if (PG_ARGISNULL(1))
       {
         elog(MEDIANDEBUG, "median_transfn ignoring null arg");
